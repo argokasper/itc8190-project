@@ -1,72 +1,76 @@
-import math
+'''
+Pollard\'s p-1 algorithm class
+'''
+
+from math import gcd
 import sympy
 
 from typing import List
 
+MAX_RETRIES = 100
 
-def prime_factors(n: int) -> int:
 
-    # defining base
-    a = 2
+def prime_factors(number: int) -> int:
+    '''Obtains a prime factor for a given number or throws an exception
 
-    # defining exponent
-    i = 2
+    Args:
+        number (int): number to start looking a factor for
+
+    Returns:
+        int: prime factor
+    '''
+
+    # a=coprime to number
+    coprime = 2
+    # M value, this is trivial, thus chosen as 2 which increments each loop
+    m = 2
 
     # iterate till a prime factor is obtained
-    while(True):
+    for m in range(2, MAX_RETRIES):
+        # recomputing a=coprime as required to save memory
+        coprime = (coprime**m) % number
 
-        # recomputing a as required
-        a = (a**i) % n
-        print(a)
-
-        # finding gcd of a-1 and n
-        # using math function
-        d = math.gcd((a-1), n)
-        print('d:' + str(d))
+        # finding gcd of coprime-1 and number
+        potent_fact = gcd((coprime-1), number)
 
         # check if factor obtained
-        if (d > 1 and d < n):
+        if potent_fact > 1 and potent_fact < number:
+            return potent_fact
 
-            #return the factor
-            return d
-
-        # else increase exponent by one
+        # else increase exponent(M) by one
         # for next round
-        i += 1
-        # if i > 10:
-        #     return d
-        # print('i=' + str(i))
+        m += 1
+
+    if m == MAX_RETRIES:
+        raise Exception('Failure! gcd()=1')
 
 
-def pollard_p1(n: int) -> List[int]:
+def pollard_p1(number: int) -> List[int]:
+    '''Finds two factors for a number or throws an exception if not.
+
+    Args:
+        number (int): chosen number
+
+    Returns:
+        List[int]: factors as an array
+    '''
+
     # list for storing prime factors
-    facts = []
+    factors = []
 
-    # iterated till all prime factors
-    # are obtained
+    # iterated till all prime factors are found or throw an exception
     while(True):
-
-        # function call
-        d = prime_factors(n)
-        print(d)
-
-        # add obtained factor to list
-        facts.append(d)
+        factor = prime_factors(number)
+        factors.append(factor)
 
         # reduce n
-        r = int(n/d)
-        print(r)
+        other_factor = int(number / factor)
 
-        # check for prime using sympy
-        if(sympy.isprime(r)):
-
-            # both prime factors obtained
-            facts.append(r)
-
+        if sympy.isprime(other_factor):
+            factors.append(other_factor)
             break
-
-        # reduced n is not prime, so repeat
+        # not prime, so repeat
         else:
-            n = r
+            number = other_factor
 
-    return facts
+    return factors
